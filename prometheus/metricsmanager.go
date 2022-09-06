@@ -2,27 +2,43 @@ package prometheus
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
 type MetricsManager struct {
-	Path string
-	Port int
-	Http http.Server
+	Path   string
+	Port   int
+	Server *http.ServeMux
 }
 
-func New(path string, port int) *MetricsManager {
+func NewMetricsManager(path string, port int) *MetricsManager {
 	p := new(MetricsManager)
 	p.Path = path
 	p.Port = port
-	p.Http = http.DefaultServeMux
+
+	mux := http.NewServeMux()
+	p.Server = mux
+
 	return p
 }
 
-func addMetricPath(m MetricsManager, path string, handler http.Handler) {
-	m.Http.Handle()
+func (this *MetricsManager) AddMetricPath(path string, handler http.Handler) {
+	this.Server.Handle(path, handler)
 }
 
-func Serve(m MetricsManager) {
-	http.ListenAndServe(fmt.Sprintf(":%d", m.Port), nil)
+func (this *MetricsManager) Serve() {
+	// s := &http.Server{
+	// 	Addr:           fmt.Sprintf(":%d", this.Port),
+	// 	Handler:        nil,
+	// 	ReadTimeout:    10 * time.Second,
+	// 	WriteTimeout:   10 * time.Second,
+	// 	MaxHeaderBytes: 1 << 20,
+	// }
+	// this.Server = s //hand over ref to struct
+
+	//start goroutine so server is running in a seperate thread
+	go func() {
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", this.Port), this.Server))
+	}()
 }

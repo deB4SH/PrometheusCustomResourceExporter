@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/http"
 
+	pmt "github.com/deb4sh/PrometheusCustomResourceExporter/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -30,5 +30,13 @@ func serverMetrics(listenAddress, metricsPath string) error {
 
 // start the service
 func main() {
-	log.Fatal(serverMetrics(*listenAddress, *metricPath))
+	m := pmt.NewMetricsManager("metrics", 8080)
+	m.AddMetricPath("prometheus", promhttp.Handler())
+
+	m.Serve()
+
+	for {
+		// do something
+	}
+
 }
