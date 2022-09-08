@@ -23,7 +23,7 @@ type CustomResource struct {
 
 type CustomResourceData struct {
 	Name string
-	Data []string
+	Data string
 }
 
 type KubernetesConnection struct {
@@ -42,14 +42,20 @@ func NewCustomResource(api string, apiversion string, namespace string, resource
 	return e
 }
 
+func NewCustomResourceData(name string, data []byte) *CustomResourceData {
+	e := new(CustomResourceData)
+	e.Name = name
+	e.Data = string(data)
+	return e
+}
+
 func newKubernetesConnection(config *rest.Config) *KubernetesConnection {
 	e := new(KubernetesConnection)
 	e.config = config
 	return e
 }
 
-func ParseCR(c *CustomResource) {
-
+func BuildKubernetesConnection() *KubernetesConnection {
 	var k8Config *KubernetesConnection
 
 	if *isCluster {
@@ -77,6 +83,10 @@ func ParseCR(c *CustomResource) {
 		k8Config = newKubernetesConnection(config)
 	}
 
+	return k8Config
+}
+
+func ParseCR(c *CustomResource, k8Config KubernetesConnection) *CustomResourceData {
 	fmt.Print("Creating clientset")
 	clientset, err := kubernetes.NewForConfig(k8Config.config)
 	if err != nil {
@@ -91,5 +101,5 @@ func ParseCR(c *CustomResource) {
 		os.Exit(1)
 	}
 
-	fmt.Print(data)
+	return NewCustomResourceData(fmt.Sprintf("%s-%s", c.Resource, c.Name), data)
 }

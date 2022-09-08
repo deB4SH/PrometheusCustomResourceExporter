@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	k8api "github.com/deb4sh/PrometheusCustomResourceExporter/kubernetes"
 	//"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,6 +31,8 @@ var metricPath = flag.String("web.metrics-path", "/metrics", "Path under which t
 // start the service
 func main() {
 	//currently for debug purpses
-	cr := k8api.NewCustomResource("k3s.cattle.io", "v1", "kube-system", "addons", "ccm")
-	k8api.ParseCR(cr)
+	connection := k8api.BuildKubernetesConnection()
+	crd := k8api.NewCustomResource("k3s.cattle.io", "v1", "kube-system", "addons", "ccm")
+	cr := k8api.ParseCR(crd, *connection)
+	fmt.Print(cr)
 }
