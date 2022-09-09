@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
+	config "github.com/deb4sh/PrometheusCustomResourceExporter/config"
 	k8api "github.com/deb4sh/PrometheusCustomResourceExporter/kubernetes"
 	//"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -11,6 +13,7 @@ import (
 // variables to start the server
 var listenAddress = flag.String("web.listen-address", ":9888", "Address to listen on for web interface.")
 var metricPath = flag.String("web.metrics-path", "/metrics", "Path under which to expose metrics.")
+var configPath = flag.String("config.path", "example.config.yaml", "Path under which the config is located.")
 
 // func serverMetrics(listenAddress, metricsPath string) error {
 // 	http.Handle(metricsPath, promhttp.Handler())
@@ -30,6 +33,17 @@ var metricPath = flag.String("web.metrics-path", "/metrics", "Path under which t
 
 // start the service
 func main() {
+	configValidationErr := config.ValidateConfigFilePath(*configPath)
+	if configValidationErr != nil {
+		fmt.Println(configValidationErr.Error())
+		os.Exit(-1)
+	}
+	crdConfig, crdConfigErr := config.NewConfig(*configPath)
+	if crdConfigErr != nil {
+		fmt.Println(crdConfigErr.Error())
+		os.Exit(-1)
+	}
+	fmt.Println(crdConfig)
 	//currently for debug purpses
 	connection := k8api.BuildKubernetesConnection()
 	crd := k8api.NewCustomResource("k3s.cattle.io", "v1", "kube-system", "addons", "ccm")
