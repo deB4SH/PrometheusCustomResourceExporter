@@ -1,0 +1,11 @@
+crds:
+  - api: "k3s.cattle.io"
+    apiversion: "v1"
+    namespace: "kube-system"
+    resource: "addons"
+    name: "ccm"
+  - api: "k3s.cattle.io"
+    apiversion: "v1"
+    namespace: "kube-system"
+    resource: "addons"
+    name: "coredns"
