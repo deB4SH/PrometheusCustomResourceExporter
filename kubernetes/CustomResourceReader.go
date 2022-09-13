@@ -55,7 +55,7 @@ func newKubernetesConnection(config *rest.Config) *KubernetesConnection {
 	return e
 }
 
-func BuildKubernetesConnection() *KubernetesConnection {
+func BuildKubernetesConnection() (*KubernetesConnection, error) {
 	var k8Config *KubernetesConnection
 
 	if *isCluster {
@@ -63,14 +63,14 @@ func BuildKubernetesConnection() *KubernetesConnection {
 		config, err := rest.InClusterConfig()
 		if err != nil {
 			fmt.Printf("error getting Kubernetes config: %v\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 		k8Config = newKubernetesConnection(config)
 	} else {
 		userHomeDir, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Printf("error getting user home dir: %v\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 		kubeConfigPath := filepath.Join(userHomeDir, ".kube", "config")
 		fmt.Printf("Using kubeconfig: %s\n", kubeConfigPath)
@@ -78,15 +78,15 @@ func BuildKubernetesConnection() *KubernetesConnection {
 		config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 		if err != nil {
 			fmt.Printf("error getting Kubernetes config: %v\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 		k8Config = newKubernetesConnection(config)
 	}
 
-	return k8Config
+	return k8Config, nil
 }
 
-func ParseCR(c *CustomResource, k8Config KubernetesConnection) *CustomResourceData {
+func ParseCR(c *CustomResource, k8Config KubernetesConnection) (*CustomResourceData, error) {
 	fmt.Print("Creating clientset")
 	clientset, err := kubernetes.NewForConfig(k8Config.config)
 	if err != nil {
@@ -101,5 +101,5 @@ func ParseCR(c *CustomResource, k8Config KubernetesConnection) *CustomResourceDa
 		os.Exit(1)
 	}
 
-	return NewCustomResourceData(fmt.Sprintf("%s-%s", c.Resource, c.Name), data)
+	return NewCustomResourceData(fmt.Sprintf("%s-%s", c.Resource, c.Name), data), nil
 }

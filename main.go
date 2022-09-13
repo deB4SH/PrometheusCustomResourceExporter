@@ -45,8 +45,12 @@ func main() {
 	}
 	fmt.Println(crdConfig)
 	//currently for debug purpses
-	connection := k8api.BuildKubernetesConnection()
+	connection, err := k8api.BuildKubernetesConnection()
+	if err != nil {
+		fmt.Println("Could not build Kubernetes Connection", err)
+		os.Exit(-1)
+	}
 	crd := k8api.NewCustomResource("k3s.cattle.io", "v1", "kube-system", "addons", "ccm")
-	cr := k8api.ParseCR(crd, *connection)
+	cr, _ := k8api.ParseCR(crd, *connection)
 	fmt.Print(cr)
 }
