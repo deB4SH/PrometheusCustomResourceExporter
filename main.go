@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -43,14 +44,24 @@ func main() {
 		fmt.Println(crdConfigErr.Error())
 		os.Exit(-1)
 	}
-	fmt.Println(crdConfig)
 	//currently for debug purpses
 	connection, err := k8api.BuildKubernetesConnection()
 	if err != nil {
 		fmt.Println("Could not build Kubernetes Connection", err)
 		os.Exit(-1)
 	}
-	crd := k8api.NewCustomResource("k3s.cattle.io", "v1", "kube-system", "addons", "ccm")
-	cr, _ := k8api.ParseCR(crd, *connection)
-	fmt.Print(cr)
+	//read all configured custom resources
+	for _, element := range crdConfig.CustomResourceEntryArray { //not needing the index
+		tmpCrd := k8api.NewCustomResourceFromConfigEntry(element)
+		cr, _ := k8api.ParseCR(tmpCrd, *connection)
+		//unmarschal data of cr
+		dynamic := make(map[string]interface{})
+		json.Unmarshal([]byte(cr.Data), &dynamic)
+		//interprete spec.data  and generate prometheus values from it
+		specdata := dynamic["spec"].(map[string]interface{})
+		for key, data := range specdata {
+			fmt.Println(key)
+			fmt.Println(data)
+		}
+	}
 }
