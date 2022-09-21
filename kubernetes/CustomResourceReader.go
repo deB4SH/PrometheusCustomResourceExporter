@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	config "github.com/deb4sh/PrometheusCustomResourceExporter/config"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -40,6 +42,10 @@ func NewCustomResource(api string, apiversion string, namespace string, resource
 	e.Resource = resource
 	e.Name = name
 	return e
+}
+
+func NewCustomResourceFromConfigEntry(entry config.CustomResourceEntry) *CustomResource {
+	return NewCustomResource(entry.Api, entry.ApiVersion, entry.Namespace, entry.Resource, entry.Name)
 }
 
 func NewCustomResourceData(name string, data []byte) *CustomResourceData {
